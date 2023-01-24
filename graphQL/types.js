@@ -105,6 +105,29 @@ const UserTypeInput = new GraphQLInputObjectType({
   }),
 });
 
+// update user input type
+const UpdateUserTypeInput = new GraphQLInputObjectType({
+  name: 'UpdateUserTypeInput',
+  description: 'Taking input to update an existing user',
+  fields: () => ({
+    firstName: {
+      type: GraphQLString,
+    },
+    lastName: {
+      type: GraphQLString,
+    },
+    gander: {
+      type: GenderEnumType,
+    },
+    phone: {
+      type: GraphQLString,
+    },
+    email: {
+      type: GraphQLString,
+    },
+  }),
+});
+
 // Root Query Type
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
@@ -190,45 +213,45 @@ const RootMutationType = new GraphQLObjectType({
         return user;
       },
     },
-    // updateUser: {
-    //   type: UserType,
-    //   args: {
-    //     id: {
-    //       type: GraphQLID,
-    //     },
-    //     input: {
-    //       type: UpdateUserTypeInput,
-    //     },
-    //   },
-    //   resolve: (
-    //     _,
-    //     { id, input: { firstName, lastName, gander, phone, email } }
-    //   ) => {
-    //     let updatedUser = null;
-    //     users.forEach((user) => {
-    //       if (user.id == id) {
-    //         if (firstName) {
-    //           user.firstName = firstName;
-    //         }
-    //         if (lastName) {
-    //           user.lastName = lastName;
-    //         }
-    //         if (gander) {
-    //           user.gander = gander;
-    //         }
-    //         if (phone) {
-    //           user.phone = phone;
-    //         }
-    //         if (email) {
-    //           user.email = email;
-    //         }
-    //         updatedUser = user;
-    //       }
-    //     });
+    updateUser: {
+      type: UserType,
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+        input: {
+          type: UpdateUserTypeInput,
+        },
+      },
+      resolve: (
+        _,
+        { id, input: { firstName, lastName, gender, phone, email } }
+      ) => {
+        let updatedUser = null;
+        users.forEach((user) => {
+          if (user.id == id) {
+            if (firstName) {
+              user.firstName = firstName;
+            }
+            if (lastName) {
+              user.lastName = lastName;
+            }
+            if (gender) {
+              user.gender = gender;
+            }
+            if (phone) {
+              user.phone = phone;
+            }
+            if (email) {
+              user.email = email;
+            }
+            updatedUser = user;
+          }
+        });
 
-    //     return updatedUser;
-    //   },
-    // },
+        return updatedUser;
+      },
+    },
     // deleteUser: {
     //   type: GraphQLNonNull(GraphQLBoolean),
     //   args: {
