@@ -11,6 +11,7 @@ const {
   GraphQLScalarType,
   GraphQLString,
   GraphQLObjectType,
+  GraphQLInputObjectType,
 } = require('graphql');
 const { users, posts } = require('../data');
 
@@ -68,9 +69,39 @@ const PostType = new GraphQLObjectType({
     user: {
       type: UserType,
       resolve: (post, args) => {
+        console.log(post);
         return users.find((user) => user.id == post.user);
       },
     },
+  }),
+});
+
+// UserTypeInput
+const UserTypeInput = new GraphQLInputObjectType({
+  name: 'UserTypeInput',
+  description: 'Taking input to add a new user',
+  fields: () => ({
+    firstName: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    lastName: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    gender: {
+      type: new GraphQLNonNull(GenderEnumType),
+    },
+    phone: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    email: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    // createdAt: {
+    //   type: DateType,
+    // },
+    // password: {
+    //   type: PasswordType,
+    // },
   }),
 });
 
@@ -117,4 +148,105 @@ const RootQueryType = new GraphQLObjectType({
   }),
 });
 
-module.exports = { RootQueryType, UserType };
+// Root Mutation Type
+const RootMutationType = new GraphQLObjectType({
+  name: 'Mutation',
+  description: 'Root Mutation',
+  fields: () => ({
+    addUser: {
+      type: UserType,
+      args: {
+        input: {
+          type: UserTypeInput,
+        },
+      },
+      resolve: (
+        _,
+        {
+          input: {
+            firstName,
+            lastName,
+            gender,
+            phone,
+            email,
+            createdAt,
+            password,
+          },
+        }
+      ) => {
+        const user = {
+          id: users.length + 1,
+          firstName,
+          lastName,
+          gender,
+          phone,
+          email,
+          posts: [],
+          createdAt,
+          password,
+        };
+
+        users.push(user);
+        return user;
+      },
+    },
+    // updateUser: {
+    //   type: UserType,
+    //   args: {
+    //     id: {
+    //       type: GraphQLID,
+    //     },
+    //     input: {
+    //       type: UpdateUserTypeInput,
+    //     },
+    //   },
+    //   resolve: (
+    //     _,
+    //     { id, input: { firstName, lastName, gander, phone, email } }
+    //   ) => {
+    //     let updatedUser = null;
+    //     users.forEach((user) => {
+    //       if (user.id == id) {
+    //         if (firstName) {
+    //           user.firstName = firstName;
+    //         }
+    //         if (lastName) {
+    //           user.lastName = lastName;
+    //         }
+    //         if (gander) {
+    //           user.gander = gander;
+    //         }
+    //         if (phone) {
+    //           user.phone = phone;
+    //         }
+    //         if (email) {
+    //           user.email = email;
+    //         }
+    //         updatedUser = user;
+    //       }
+    //     });
+
+    //     return updatedUser;
+    //   },
+    // },
+    // deleteUser: {
+    //   type: GraphQLNonNull(GraphQLBoolean),
+    //   args: {
+    //     id: {
+    //       type: GraphQLID,
+    //     },
+    //   },
+    //   resolve: (_, { id }) => {
+    //     const index = users.findIndex((user) => user.id == id);
+    //     if (index >= 0) {
+    //       users.splice(index, 1);
+    //       return true;
+    //     } else {
+    //       return false;
+    //     }
+    //   },
+    // },
+  }),
+});
+
+module.exports = { RootQueryType, UserType, RootMutationType };
