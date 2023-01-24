@@ -252,23 +252,23 @@ const RootMutationType = new GraphQLObjectType({
         return updatedUser;
       },
     },
-    // deleteUser: {
-    //   type: GraphQLNonNull(GraphQLBoolean),
-    //   args: {
-    //     id: {
-    //       type: GraphQLID,
-    //     },
-    //   },
-    //   resolve: (_, { id }) => {
-    //     const index = users.findIndex((user) => user.id == id);
-    //     if (index >= 0) {
-    //       users.splice(index, 1);
-    //       return true;
-    //     } else {
-    //       return false;
-    //     }
-    //   },
-    // },
+    deleteUser: {
+      type: GraphQLNonNull(GraphQLBoolean),
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+      },
+      resolve: (_, { id }) => {
+        const index = users.findIndex((user) => user.id == id);
+        if (index >= 0) {
+          users.splice(index, 1);
+          return true;
+        } else {
+          return false;
+        }
+      },
+    },
   }),
 });
 
