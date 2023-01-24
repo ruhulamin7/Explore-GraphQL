@@ -51,6 +51,29 @@ const GenderEnumType = new GraphQLEnumType({
   },
 });
 
+// post type
+const PostType = new GraphQLObjectType({
+  name: 'Post',
+  description: 'It represents a single post',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+    },
+    title: {
+      type: GraphQLString,
+    },
+    description: {
+      type: GraphQLString,
+    },
+    user: {
+      type: UserType,
+      resolve: (post, args) => {
+        return users.find((user) => user.id == post.user);
+      },
+    },
+  }),
+});
+
 // Root Query Type
 const RootQueryType = new GraphQLObjectType({
   name: 'Query',
@@ -72,6 +95,23 @@ const RootQueryType = new GraphQLObjectType({
       resolve: (_, { id }) => {
         const user = users.find((user) => user.id == id);
         return user;
+      },
+    },
+    posts: {
+      type: new GraphQLList(PostType),
+      resolve: () => {
+        return posts;
+      },
+    },
+    post: {
+      type: PostType,
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+      },
+      resolve: (_, { id }) => {
+        return posts.find((post) => post.id == id);
       },
     },
   }),
