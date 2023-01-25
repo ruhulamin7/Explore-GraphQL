@@ -12,6 +12,7 @@ const {
   GraphQLString,
   GraphQLObjectType,
   GraphQLInputObjectType,
+  Kind,
 } = require('graphql');
 const { users, posts } = require('../data');
 
@@ -34,6 +35,9 @@ const UserType = new GraphQLObjectType({
     },
     phone: {
       type: new GraphQLNonNull(GraphQLString),
+    },
+    createdAt: {
+      type: DateType,
     },
   }),
 });
@@ -96,9 +100,9 @@ const UserTypeInput = new GraphQLInputObjectType({
     email: {
       type: new GraphQLNonNull(GraphQLString),
     },
-    // createdAt: {
-    //   type: DateType,
-    // },
+    createdAt: {
+      type: DateType,
+    },
     // password: {
     //   type: PasswordType,
     // },
@@ -116,7 +120,7 @@ const UpdateUserTypeInput = new GraphQLInputObjectType({
     lastName: {
       type: GraphQLString,
     },
-    gander: {
+    gender: {
       type: GenderEnumType,
     },
     phone: {
@@ -125,7 +129,35 @@ const UpdateUserTypeInput = new GraphQLInputObjectType({
     email: {
       type: GraphQLString,
     },
+    createdAt: {
+      type: DateType,
+    },
   }),
+});
+
+// date validator
+const validateDate = (value) => {
+  const date = new Date(value);
+  if (date.toString() === 'Invalid Date') {
+    throw new GraphQLError(`${value} is not a valid date`);
+  } else {
+    return date.toLocaleDateString();
+  }
+};
+
+// DateType
+const DateType = new GraphQLScalarType({
+  name: 'DateType',
+  description: 'It represents a date',
+  parseValue: validateDate,
+  parseLiteral: (AST) => {
+    if (AST.kind === Kind.STRING || AST.kind === Kind.INT) {
+      return validateDate(AST.value);
+    } else {
+      throw GraphQLError(`${AST.value} is not a number or string!`);
+    }
+  },
+  serialize: validateDate,
 });
 
 // Root Query Type
@@ -225,7 +257,7 @@ const RootMutationType = new GraphQLObjectType({
       },
       resolve: (
         _,
-        { id, input: { firstName, lastName, gender, phone, email } }
+        { id, input: { firstName, lastName, gender, phone, createdAt, email } }
       ) => {
         let updatedUser = null;
         users.forEach((user) => {
@@ -242,16 +274,20 @@ const RootMutationType = new GraphQLObjectType({
             if (phone) {
               user.phone = phone;
             }
+            if (createdAt) {
+              user.createdAt = createdAt;
+            }
             if (email) {
               user.email = email;
             }
+
             updatedUser = user;
           }
         });
-
         return updatedUser;
       },
     },
+
     deleteUser: {
       type: GraphQLNonNull(GraphQLBoolean),
       args: {
