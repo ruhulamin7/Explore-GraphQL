@@ -42,6 +42,9 @@ const UserType = new GraphQLObjectType({
     email: {
       type: GraphQLNonNull(EmailType),
     },
+    password: {
+      type: PasswordType,
+    },
   }),
 });
 
@@ -106,9 +109,9 @@ const UserTypeInput = new GraphQLInputObjectType({
     createdAt: {
       type: DateType,
     },
-    // password: {
-    //   type: PasswordType,
-    // },
+    password: {
+      type: PasswordType,
+    },
   }),
 });
 
@@ -161,6 +164,9 @@ const UpdateUserTypeInput = new GraphQLInputObjectType({
     createdAt: {
       type: DateType,
     },
+    password: {
+      type: PasswordType,
+    },
   }),
 });
 
@@ -187,6 +193,32 @@ const DateType = new GraphQLScalarType({
     }
   },
   serialize: validateDate,
+});
+
+// password validator
+function passwordValidator(password) {
+  var pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+
+  if (pwdRegex.test(password)) {
+    return password;
+  } else {
+    throw new GraphQLError('Password is not enough strong!');
+  }
+}
+
+// password Type
+const PasswordType = new GraphQLScalarType({
+  name: 'PasswordType',
+  description:
+    'It is for strong password with one uppercase, one lowercase, 1 simple , 1 number',
+  parseValue: passwordValidator,
+  parseLiteral: (AST) => {
+    if (AST.kind === Kind.STRING) {
+      return passwordValidator(AST.value);
+    } else {
+      throw new GraphQLError('Password is not a string!');
+    }
+  },
 });
 
 // Root Query Type
@@ -285,7 +317,18 @@ const RootMutationType = new GraphQLObjectType({
       },
       resolve: (
         _,
-        { id, input: { firstName, lastName, gender, phone, createdAt, email } }
+        {
+          id,
+          input: {
+            firstName,
+            lastName,
+            gender,
+            phone,
+            createdAt,
+            email,
+            password,
+          },
+        }
       ) => {
         let updatedUser = null;
         users.forEach((user) => {
@@ -307,6 +350,9 @@ const RootMutationType = new GraphQLObjectType({
             }
             if (email) {
               user.email = email;
+            }
+            if (password) {
+              user.password = password;
             }
 
             updatedUser = user;
