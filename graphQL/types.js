@@ -39,6 +39,9 @@ const UserType = new GraphQLObjectType({
     createdAt: {
       type: DateType,
     },
+    email: {
+      type: GraphQLNonNull(EmailType),
+    },
   }),
 });
 
@@ -109,6 +112,31 @@ const UserTypeInput = new GraphQLInputObjectType({
   }),
 });
 
+// email validator
+function validateEmail(email) {
+  let regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+  if (email.match(regex)) {
+    return email;
+  }
+  throw new GraphQLError(`${value} is not a valid Email`);
+}
+
+// Email Type
+const EmailType = new GraphQLScalarType({
+  name: 'EmailType',
+  description: 'It is for email',
+  parseValue: validateEmail,
+  parseLiteral: (AST) => {
+    if (AST.kind === Kind.STRING) {
+      return validateEmail(AST.value);
+    } else {
+      throw GraphQLError(`${AST.value} is not a string!`);
+    }
+  },
+  serialize: validateEmail,
+});
+
 // update user input type
 const UpdateUserTypeInput = new GraphQLInputObjectType({
   name: 'UpdateUserTypeInput',
@@ -127,8 +155,9 @@ const UpdateUserTypeInput = new GraphQLInputObjectType({
       type: GraphQLString,
     },
     email: {
-      type: GraphQLString,
+      type: EmailType,
     },
+
     createdAt: {
       type: DateType,
     },
@@ -240,7 +269,6 @@ const RootMutationType = new GraphQLObjectType({
           createdAt,
           password,
         };
-
         users.push(user);
         return user;
       },
