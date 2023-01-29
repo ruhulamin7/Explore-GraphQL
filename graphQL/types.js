@@ -219,6 +219,7 @@ const PasswordType = new GraphQLScalarType({
       throw new GraphQLError('Password is not a string!');
     }
   },
+  serialize: passwordValidator,
 });
 
 // Root Query Type
